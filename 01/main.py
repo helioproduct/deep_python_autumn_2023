@@ -28,6 +28,8 @@ class Player:
     def __init__(self, symbol):
         self.symbol = symbol
 
+    def __str__(self):
+        return self.symbol
 
 class Move:
 
@@ -84,63 +86,46 @@ class TicTacGame:
         return self.players[self.move_number % len(self.players)]
 
     def show_game(self):
-        print(f"{self.get_current_player()} move:")
+        print(f"\n{self.get_current_player()} move:")
         self.board.show()
 
-    def parse_input(self):
-
+    def parse_input(self) -> Move:
         try:
             column = int(input("Enter column: "))
             row = int(input("Enter row: "))
         except ValueError as e:
             raise e
-
         if column >= self.size or row >= self.size:
-            raise IncorrectMoveException('Move outside of the board')
-
-        return (column, row)
-
-    def get_next_move(self):
-        try:
-            column, row = self.parse_input()
-        except BaseException:
-            print(f'Enter integers <= {self.size}\n')
-            self.next_move()
+            raise IncorrectMoveException()
         return Move(self.get_current_player(), column, row)
-
-
-    def proceed_move(self, move: Move):
-        
-        if self.board.data[move.column][move.row].is_empty():
-            self.board.update_cell(move.column, move.row, move.player.symbol)
-        else:
-            raise CeilIsOccupiedException()
 
     def game_cycle(self):
 
         while True:
             self.show_game()
-            move = self.get_next_move()
-            
-            if self.board.data[move.column][move.row].is_empty():
-                self.board.update_cell(move.column, move.row, move.player.symbol)
-                self.move_number += 1
-            else:
-                print('')
 
+            while True:
+                try:
+                    move = self.parse_input()
+                    if self.board.data[move.column][move.row].is_empty():
+                        break
+                    else:
+                        print('Move is not available. Сell is occupied')
+                except:
+                    print(f'Enter integers <= {self.size}')
+
+            self.board.update_cell(move.column, move.row, move.player.symbol)
+            self.move_number += 1
+
+    def start_game(self):
+        print('TIC TAC GAME')
+        self.game_cycle()
 
 
     def check_winner():
         pass
 
 
-# game = TicTacGame(size=3, players=[Player('*'), Player('0')])
-# game.start_game()
+game = TicTacGame(size=3, players=[Player('*'), Player('0')])
+game.start_game()
 
-# test = int(input())
-# print(test)
-
-
-board = Board()
-
-print(board.data[2][2].is_empty())
