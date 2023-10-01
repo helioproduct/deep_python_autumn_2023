@@ -116,13 +116,19 @@ class TicTacGame:
 
             self.board.update_cell(move.column, move.row, move.player.symbol)
             self.move_number += 1
+            
+            winner = self.check_winner()
+            if winner:
+                print(f"{winner} won!")
+                break
 
     def start_game(self):
         print('TIC TAC GAME')
         self.game_cycle()
 
 
-    def check_winner():
+    def check_winner(self):
+        return self.players[0]
         pass
 
 
