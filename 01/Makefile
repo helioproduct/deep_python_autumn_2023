@@ -10,7 +10,6 @@ TESTS_DIR = .
 # Test runner
 TEST_RUNNER = $(PYTHON) -m unittest discover -s $(TESTS_DIR) -p 'test_*.py'
 
-.PHONY: test
 
 test:
 	@echo "Running tests..."
