@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Callable
 
 
 def mean(k):
@@ -22,3 +23,15 @@ def mean(k):
         return wrapper
 
     return timer
+
+
+def parse_json(
+    json_str: str, keyword_callback: Callable, required_fields=None, keywords=None
+):
+    json_doc = json.loads(json_str)
+
+    for key in required_fields:
+        if key in json_doc:
+            for keyword in keywords:
+                if keyword in json_doc(key).split():
+                    keyword_callback(key, keyword)
