@@ -1,6 +1,4 @@
 import unittest
-from io import StringIO
-from unittest.mock import patch
 
 from tic_tac_game import TicTacGame, Player, Board, Cell, IncorrectMoveException, Move
 
