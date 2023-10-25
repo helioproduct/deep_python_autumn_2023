@@ -1,6 +1,6 @@
 import json
 import time
-from typing import Callable
+from typing import Callable, List
 
 
 def mean(k):
@@ -26,7 +26,10 @@ def mean(k):
 
 
 def parse_json(
-    json_str: str, keyword_callback: Callable, required_fields=None, keywords=None
+    json_str: str,
+    required_fields: List[str] = None,
+    keyword_callback: Callable = None,
+    keywords: List[str] = None,
 ) -> bool:
     if keyword_callback is None or required_fields is None or keywords is None:
         return False
