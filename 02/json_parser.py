@@ -28,8 +28,8 @@ def mean(k):
 def parse_json(
     json_str: str,
     required_fields: List[str] = None,
-    keyword_callback: Callable = None,
     keywords: List[str] = None,
+    keyword_callback: Callable = None,
 ) -> bool:
     if keyword_callback is None or required_fields is None or keywords is None:
         return False
