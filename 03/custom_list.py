@@ -1,6 +1,6 @@
 class CustomList(list):
     def __add__(self, other):
-        sum = self if len(self) > len(other) else other
+        sum = self.copy() if len(self) > len(other) else other.copy()
         for i in range(min(len(self), len(other))):
             sum[i] = self[i] + other[i]
         return CustomList(sum)
@@ -9,10 +9,8 @@ class CustomList(list):
         return self.__add__(other)
 
     def __sub__(self, other):
-        sum = self if len(self) > len(other) else other
-        for i in range(min(len(self), len(other))):
-            sum[i] = self[i] - other[i]
-        return sum
+        negative_other = CustomList([(-1) * x for x in other])
+        return self + negative_other
 
     def __rsub__(self, other):
         return CustomList(other) - self
