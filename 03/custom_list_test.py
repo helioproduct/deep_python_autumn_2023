@@ -142,6 +142,7 @@ class TestCustomList(unittest.TestCase):
 
         self.assertTrue(lst3 != lst4)
         self.assertFalse(lst3 != lst6)
+        # self.assertFalse(lst2 != lst4)
 
     def test_gt(self):
         lst1 = CustomList([5, 1, 3, 7])
