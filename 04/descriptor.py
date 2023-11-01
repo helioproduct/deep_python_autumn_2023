@@ -6,18 +6,14 @@ class Email:
     pass
 
 
-class PositiveInteger:
-    pass
-
-
-class PersonName:
+class Age:
     pass
 
 
 class User:
     num = PhoneNumber()
     email = Email()
-    price = PersonName()
+    price = Age()
 
     def __init__(self):
         pass
