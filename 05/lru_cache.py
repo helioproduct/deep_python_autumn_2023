@@ -1,106 +1,59 @@
-from collections import deque
-
-
 class Node:
-    def __init__(self, key, value):
-        self.key = key
-        self.value = value
-        self.prev, self.next = None, None
-
-    def collapse(self):
-        if self.prev is not None:
-            self.prev.next = self.next
-
-        if self.next is not None:
-            self.next.prev = self.prev
-
-
-class DoubleLinkedList:
-    def __init__(self):
-        self.__dummy_head = Node(0, 0)
-        self.tail = None
-
-    @property
-    def head(self):
-        return self.__dummy_head.next
-
-    def apppend_left(self, node: Node):
-        if self.head is None:
-            self.tail = node
-        else:
-            self.head.prev = node
-
-        node.next = self.head
-        node.prev = self.__dummy_head
-        self.__dummy_head.next = node
-
-    def drop_right(self):
-        if self.tail is None:
-            return
-        prev_tail = self.tail.prev
-        if prev_tail is not None:
-            prev_tail.next = None
-        self.tail = prev_tail
-
-    def __str__(self):
-        result = "["
-        node = self.head
-        while node is not None:
-            result += f"({node.key}, {node.value})"
-            node = node.next
-        result += "]"
-        return result
+    def __init__(self, key, val):
+        self.key, self.val = key, val
+        self.prev = self.next = None
 
 
 class LRUCache:
-    def __init__(self, limit=42):
-        self.order = DoubleLinkedList()
-        self.limit = limit
-        self.cache = dict()
+    def __init__(self, capacity: int):
+        self.cap = capacity
+        self.cache = {}  # map key to node
 
-    def __update_lru(self, key):
+        self.left, self.right = Node(0, 0), Node(0, 0)
+        self.left.next, self.right.prev = self.right, self.left
+
+    # remove node from list
+    def remove(self, node):
+        prev, nxt = node.prev, node.next
+        prev.next, nxt.prev = nxt, prev
+
+    # insert node at right
+    def insert(self, node):
+        prev, nxt = self.right.prev, self.right
+        prev.next = nxt.prev = node
+        node.next, node.prev = nxt, prev
+
+    def get(self, key: int) -> int:
         if key in self.cache:
-            # collapse node
-            pass
+            self.remove(self.cache[key])
+            self.insert(self.cache[key])
+            return self.cache[key].val
+        return None
 
-    def get(self, key):
+    def set(self, key: int, value: int) -> None:
         if key in self.cache:
-            self.__update_lru(key)
-            return self.cache[key]
-        return -1
+            self.remove(self.cache[key])
+        self.cache[key] = Node(key, value)
+        self.insert(self.cache[key])
 
-    def set(self, key, value):
-        pass
+        if len(self.cache) > self.cap:
+            # remove from the list and delete the LRU from hashmap
+            lru = self.left.next
+            self.remove(lru)
+            del self.cache[lru.key]
 
 
-# cache = LRUCache(2)
+cache = LRUCache(2)
 
-# cache.set("k1", "val1")
-# cache.set("k2", "val2")
+cache.set("k1", "val1")
+cache.set("k2", "val2")
 
-# assert cache.get("k3") is None
-# assert cache.get("k1") == "val1"
-# assert cache.get("k2") == "val2"
+assert cache.get("k3") is None
+assert cache.get("k2") == "val2"
+assert cache.get("k1") == "val1"
 
-# cache.set("k3", "val3")
+cache.set("k3", "val3")
 
-# assert cache.get("k3") == "val3"
-# assert cache.get("k2") is None
-# assert cache.get("k1") == "val1"
-
-# cache["k1"] = "val1"
-# print(cache["k3"])
-
-dl = DoubleLinkedList()
-node1 = Node(1, 1)
-node2 = Node(2, 2)
-node3 = Node(3, 3)
-
-dl.apppend_left(node1)
-dl.apppend_left(node2)
-dl.apppend_left(node3)
-
-node4 = Node(4, 4)
-dl.apppend_left(node4)
-
-print(dl)
+assert cache.get("k3") == "val3"
+assert cache.get("k2") is None
+assert cache.get("k1") == "val1"
