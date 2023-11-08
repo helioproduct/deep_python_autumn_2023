@@ -5,47 +5,72 @@ class Node:
     def __init__(self, key, value):
         self.key = key
         self.value = value
-        self.prev, self.right = None, None
+        self.prev, self.next = None, None
 
     def collapse(self):
         if self.prev is not None:
-            print("hello")
             self.prev.next = self.next
 
         if self.next is not None:
-            print("hello2")
             self.next.prev = self.prev
 
 
 class DoubleLinkedList:
-    def __init__(self, key, value):
-        self.head = Node(key, value)
+    def __init__(self):
+        self.__dummy_head = Node(0, 0)
+        self.tail = None
 
-    def appendleft(self, node: Node):
+    @property
+    def head(self):
+        return self.__dummy_head.next
+
+    def apppend_left(self, node: Node):
+        if self.head is None:
+            self.tail = node
+        else:
+            self.head.prev = node
+
         node.next = self.head
+        node.prev = self.__dummy_head
+        self.__dummy_head.next = node
 
-    def dropright(self):
-        pass
+    def drop_right(self):
+        if self.tail is None:
+            return
+        prev_tail = self.tail.prev
+        if prev_tail is not None:
+            prev_tail.next = None
+        self.tail = prev_tail
+
+    def __str__(self):
+        result = "["
+        node = self.head
+        while node is not None:
+            result += f"({node.key}, {node.value})"
+            node = node.next
+        result += "]"
+        return result
 
 
 class LRUCache:
     def __init__(self, limit=42):
-        # Left is LRU
-        self.order = deque()
+        self.order = DoubleLinkedList()
         self.limit = limit
         self.cache = dict()
 
-    def update_lru(self, key):
-        pass
+    def __update_lru(self, key):
+        if key in self.cache:
+            # collapse node
+            pass
 
     def get(self, key):
         if key in self.cache:
+            self.__update_lru(key)
             return self.cache[key]
         return -1
 
     def set(self, key, value):
-        if key in self.cache:
-            pass
+        pass
 
 
 # cache = LRUCache(2)
@@ -66,11 +91,16 @@ class LRUCache:
 # cache["k1"] = "val1"
 # print(cache["k3"])
 
+dl = DoubleLinkedList()
+node1 = Node(1, 1)
+node2 = Node(2, 2)
+node3 = Node(3, 3)
 
-left = Node(5, 5)
-left.next = Node(5, 5)
-left.next.next = Node(6, 6)
+dl.apppend_left(node1)
+dl.apppend_left(node2)
+dl.apppend_left(node3)
 
-left.next.collapse()
+node4 = Node(4, 4)
+dl.apppend_left(node4)
 
-print(left.next.value)
+print(dl)
