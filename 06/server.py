@@ -12,13 +12,16 @@
 """
 
 import argparse
-import threading
-import requests
 import json
+import socket
+import threading
 
 from typing import Callable
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
+
+import requests
 
 
 def count_top_frequent_words(url, k: int) -> dict:
@@ -27,7 +30,7 @@ def count_top_frequent_words(url, k: int) -> dict:
     soup = BeautifulSoup(response.text, features="html.parser")
     count = dict(Counter(soup.get_text().split()))
 
-    top_frequent = dict()
+    top_frequent = {}
 
     for key in sorted(count, reverse=True, key=lambda x: count[x])[:k]:
         top_frequent[key] = count[key]
@@ -35,21 +38,33 @@ def count_top_frequent_words(url, k: int) -> dict:
     return json.dumps(top_frequent, indent=4, ensure_ascii=False)
 
 
-class Master:
-    def __init__(self, workers: int):
-        self.workers
+class Master(threading.Thread):
+    # start workers
+    def __init__(self, workers_amount: int, func: Callable):
+        super(Master, self).__init__()
 
-    def start(self):
-        # init workers
-        pass
-
-
-class Worker(threading.Thread):
-    def __init__(self, func: Callable):
+        self.workers_amount = workers_amount
         self.func = func
 
-    def run():
-        pass
+        self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
+        self.serv_sock.bind(("127.0.0.1", 53210))
+        self.serv_sock.listen(1)
+
+        self.executor = ThreadPoolExecutor(max_workers=workers_amount)
+
+    def run(self):
+        while True:
+            client_sock, addr = self.serv_sock.accept()
+
+            while True:
+                data = client_sock.recv(1024)
+                if not data:
+                    break
+
+                url = data.decode().strip()
+                print(url)
+
+            client_sock.close()
 
 
 if __name__ == "__main__":
@@ -65,11 +80,11 @@ if __name__ == "__main__":
 
     # args = argument_parser.parse_args()
 
-    # server = Master(args.k)
-    # server.start()
+    server = Master(10, count_top_frequent_words)
+    server.start()
 
-    result = count_top_frequent_words(
-        "https://ru.wikipedia.org/wiki/Техническая_интеллигенция", 10
-    )
+    # result = count_top_frequent_words(
+    #     "https://ru.wikipedia.org/wiki/Техническая_интеллигенция", 10
+    # )
 
-    print(result)
+    # print(result)
