@@ -1,16 +1,3 @@
-"""
-- Сервер должен поддерживать взаимодействие с любым числом клиентов;
-- Мастер и воркеры это разные потоки в едином приложении сервера;
-- Количество воркеров задается при запуске;
-- Мастер слушает порт, на который клиенты будут по TCP отправлять урлы для обкачки;
-- Мастер принимает запроc и передает его одному из воркеров;
-- Воркер читает url от клиента;
-- Воркер обкачивает url по http и возвращает клиенту топ K самых частых слов
-  и их частоту в формате json {"word1": 10, "word2": 5};
-- После каждого обработанного урла сервер должен вывести статистику:
-  сколько урлов было обработано на данный момент суммарно всеми воркерами;
-"""
-
 import argparse
 import json
 import socket
@@ -46,9 +33,10 @@ class Master(threading.Thread):
         self.workers_amount = workers_amount
         self.func = func
 
+        # endpoint for recieving all requests
         self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
         self.serv_sock.bind(("127.0.0.1", 53210))
-        self.serv_sock.listen(1)
+        self.serv_sock.listen(10)
 
         self.executor = ThreadPoolExecutor(max_workers=workers_amount)
 
@@ -61,8 +49,9 @@ class Master(threading.Thread):
                 if not data:
                     break
 
-                url = data.decode().strip()
+                url = data.decode()
                 print(url)
+                client_sock.sendall("fuck you motherfucker".encode())
 
             client_sock.close()
 
@@ -82,9 +71,3 @@ if __name__ == "__main__":
 
     server = Master(10, count_top_frequent_words)
     server.start()
-
-    # result = count_top_frequent_words(
-    #     "https://ru.wikipedia.org/wiki/Техническая_интеллигенция", 10
-    # )
-
-    # print(result)
