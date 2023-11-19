@@ -12,11 +12,17 @@ PORT = 53210
 def make_request(url: str):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((TCP_ADRESS, PORT))
-        s.sendall(b"Hello, world")
+        s.sendall(url.encode())
         answer = s.recv(1024)
 
         print(answer.decode())
     return answer
+
+
+def read_file(filename: str):
+    with open(filename) as file:
+        lines = [line.rstrip() for line in file]
+    return lines
 
 
 if __name__ == "__main__":
@@ -28,4 +34,7 @@ if __name__ == "__main__":
 
     args = argument_parser.parse_args()
 
-    make_request("google.com")
+    urls = read_file(args.urls_file)
+
+    for url in urls:
+        make_request(url)

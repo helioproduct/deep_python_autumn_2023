@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-def count_top_frequent_words(url, k: int) -> dict:
+def count_top_frequent_words(url, k: int) -> str:
     response = requests.get(url)
 
     soup = BeautifulSoup(response.text, features="html.parser")
@@ -27,11 +27,12 @@ def count_top_frequent_words(url, k: int) -> dict:
 
 class Master(threading.Thread):
     # start workers
-    def __init__(self, workers_amount: int, func: Callable):
+    def __init__(self, workers_amount: int, func: Callable, *func_args):
         super(Master, self).__init__()
 
         self.workers_amount = workers_amount
         self.func = func
+        self.func_args = func_args
 
         # endpoint for recieving all requests
         self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
@@ -50,8 +51,9 @@ class Master(threading.Thread):
                     break
 
                 url = data.decode()
-                print(url)
-                client_sock.sendall("fuck you motherfucker".encode())
+
+                json_string = self.func(url, *self.func_args)
+                client_sock.sendall(json_string.encode())
 
             client_sock.close()
 
@@ -69,5 +71,5 @@ if __name__ == "__main__":
 
     # args = argument_parser.parse_args()
 
-    server = Master(10, count_top_frequent_words)
+    server = Master(10, count_top_frequent_words, 5)
     server.start()
