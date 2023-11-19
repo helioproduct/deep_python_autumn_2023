@@ -27,10 +27,10 @@ def count_top_frequent_words(url, k: int) -> str:
 
 class Master(threading.Thread):
     # start workers
-    def __init__(self, workers_amount: int, func: Callable, *func_args):
+    def __init__(self, workers: int, func: Callable, *func_args):
         super(Master, self).__init__()
 
-        self.workers_amount = workers_amount
+        self.workers = workers
         self.func = func
         self.func_args = func_args
 
@@ -39,7 +39,7 @@ class Master(threading.Thread):
         self.serv_sock.bind(("127.0.0.1", 53210))
         self.serv_sock.listen(10)
 
-        self.executor = ThreadPoolExecutor(max_workers=workers_amount)
+        self.thread_pool = ThreadPoolExecutor(max_workers=workers)
 
     def run(self):
         while True:
@@ -51,8 +51,11 @@ class Master(threading.Thread):
                     break
 
                 url = data.decode()
-                json_string = self.func(url, *self.func_args)
-                client_sock.sendall(json_string.encode())
+                try:
+                    work = self.thread_pool.submit(self.func, url, 5)
+                    client_sock.sendall(work.result().encode())
+                except:
+                    client_sock.sendall("error".encode())
 
             client_sock.close()
 
