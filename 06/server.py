@@ -72,7 +72,10 @@ if __name__ == "__main__":
         "-k", default=None, type=int, help="search for k frequent words", required=True
     )
 
-    # args = argument_parser.parse_args()
+    args = argument_parser.parse_args()
+    workers, words = args.w, args.k
 
-    server = Master(10, count_top_frequent_words, 5)
+    print(workers, words)
+
+    server = Master(workers, count_top_frequent_words, words)
     server.start()

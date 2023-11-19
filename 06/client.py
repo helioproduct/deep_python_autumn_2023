@@ -14,8 +14,6 @@ def make_request(url: str):
         s.connect((TCP_ADRESS, PORT))
         s.sendall(url.encode())
         answer = s.recv(1024)
-
-        print(answer.decode())
     return answer
 
 
@@ -33,8 +31,10 @@ if __name__ == "__main__":
     argument_parser.add_argument("urls_file", default=None, type=str)
 
     args = argument_parser.parse_args()
-
     urls = read_file(args.urls_file)
 
+    thread_pool = ThreadPoolExecutor(max_workers=args.threads_count)
+
     for url in urls:
-        make_request(url)
+        work = thread_pool.submit(make_request, url)
+        print(work.result())
