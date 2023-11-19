@@ -51,7 +51,6 @@ class Master(threading.Thread):
                     break
 
                 url = data.decode()
-
                 json_string = self.func(url, *self.func_args)
                 client_sock.sendall(json_string.encode())
 
@@ -60,7 +59,8 @@ class Master(threading.Thread):
 
 if __name__ == "__main__":
     argument_parser = argparse.ArgumentParser(
-        "Server", "Multithreading app for scraping url for getting top K frequent words"
+        "Server",
+        "Multithreading app for scraping urls to get top K frequent words",
     )
     argument_parser.add_argument(
         "-w", default=None, type=int, help="workers amount", required=True
