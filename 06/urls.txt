@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/3277503/how-to-read-a-file-line-by-line-into-a-list
+https://realpython.com/account/github/login/callback/?code=131be6987ca68c5a437e&state=t8nRVJd66Xm4
+https://docs.python.org/3/library/concurrent.futures.html#:~:text=3.9%3A%20Added%20cancel_futures.-,ThreadPoolExecutor,time%20def%20wait_on_b()%3A%20time.
