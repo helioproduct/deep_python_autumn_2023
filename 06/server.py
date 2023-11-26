@@ -25,8 +25,11 @@ class Master(threading.Thread):
     def __init__(self, workers: int, func: Callable, *func_args):
         super(Master, self).__init__()
         self.workers = workers
+        self.semaphore = threading.Semaphore(workers)
+
         self.func = func
         self.func_args = func_args
+
         self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
         self.serv_sock.bind(("127.0.0.1", 53210))
         self.serv_sock.listen(10)
@@ -34,6 +37,8 @@ class Master(threading.Thread):
     def run(self):
         while True:
             client_sock, _ = self.serv_sock.accept()
+
+            self.semaphore.acquire()
             client_thread = threading.Thread(
                 target=self.handle_client, args=(client_sock,)
             )
@@ -51,9 +56,10 @@ class Master(threading.Thread):
                 client_sock.sendall(result.encode())
             except Exception as e:
                 client_sock.sendall("error".encode())
-                print(f"Ошибка: {e}")
+                client_sock.close()
+                self.semaphore.release()
 
-        client_sock.close()
+                print(f"Ошибка: {e}")
 
 
 if __name__ == "__main__":
