@@ -5,20 +5,16 @@ import threading
 
 from typing import Callable
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
-
 import requests
 
 
 def count_top_frequent_words(url, k: int) -> str:
     response = requests.get(url)
-
     soup = BeautifulSoup(response.text, features="html.parser")
     count = dict(Counter(soup.get_text().split()))
 
     top_frequent = {}
-
     for key in sorted(count, reverse=True, key=lambda x: count[x])[:k]:
         top_frequent[key] = count[key]
 
@@ -26,38 +22,38 @@ def count_top_frequent_words(url, k: int) -> str:
 
 
 class Master(threading.Thread):
-    # start workers
     def __init__(self, workers: int, func: Callable, *func_args):
         super(Master, self).__init__()
-
         self.workers = workers
         self.func = func
         self.func_args = func_args
-
-        # endpoint for recieving all requests
         self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
         self.serv_sock.bind(("127.0.0.1", 53210))
         self.serv_sock.listen(10)
 
-        self.thread_pool = ThreadPoolExecutor(max_workers=workers)
-
     def run(self):
         while True:
-            client_sock, addr = self.serv_sock.accept()
+            client_sock, _ = self.serv_sock.accept()
+            client_thread = threading.Thread(
+                target=self.handle_client, args=(client_sock,)
+            )
+            client_thread.start()
 
-            while True:
-                data = client_sock.recv(1024)
-                if not data:
-                    break
+    def handle_client(self, client_sock):
+        while True:
+            data = client_sock.recv(1024)
+            if not data:
+                break
 
-                url = data.decode()
-                try:
-                    work = self.thread_pool.submit(self.func, url, 5)
-                    client_sock.sendall(work.result().encode())
-                except:
-                    client_sock.sendall("error".encode())
+            url = data.decode()
+            try:
+                result = self.func(url, *self.func_args)
+                client_sock.sendall(result.encode())
+            except Exception as e:
+                client_sock.sendall("error".encode())
+                print(f"Ошибка: {e}")
 
-            client_sock.close()
+        client_sock.close()
 
 
 if __name__ == "__main__":
@@ -74,8 +70,6 @@ if __name__ == "__main__":
 
     args = argument_parser.parse_args()
     workers, words = args.w, args.k
-
-    print(workers, words)
 
     server = Master(workers, count_top_frequent_words, words)
     server.start()
