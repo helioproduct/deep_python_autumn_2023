@@ -3,6 +3,7 @@ import argparse
 import json
 
 from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlparse
 
 
 TCP_ADRESS = "127.0.0.1"
@@ -23,6 +24,18 @@ def read_file(filename: str):
     return lines
 
 
+def simplify_url(url):
+    parsed_url = urlparse(url)
+    domain_parts = parsed_url.netloc.split(".")
+    # Проверяем, есть ли поддомен (например, 'www')
+    if len(domain_parts) > 2:
+        # Возвращаем последние две части (домен второго уровня)
+        return ".".join(domain_parts[-2:])
+    else:
+        # Если нет поддомена, возвращаем всё, что есть
+        return parsed_url.netloc
+
+
 if __name__ == "__main__":
     argument_parser = argparse.ArgumentParser(
         "Client", "Multithreading app for sending url to server, recieving answer"
@@ -38,4 +51,4 @@ if __name__ == "__main__":
     for url in urls:
         work = thread_pool.submit(make_request, url)
         json_answer = json.loads(work.result())
-        print(json_answer)
+        print(simplify_url(url), json_answer)
