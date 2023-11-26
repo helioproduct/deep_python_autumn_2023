@@ -8,6 +8,8 @@ from collections import Counter
 from bs4 import BeautifulSoup
 import requests
 
+from concurrent.futures import ThreadPoolExecutor
+
 
 def count_top_frequent_words(url, k: int) -> str:
     response = requests.get(url)
@@ -21,61 +23,49 @@ def count_top_frequent_words(url, k: int) -> str:
     return json.dumps(top_frequent, indent=4, ensure_ascii=False)
 
 
-class Master(threading.Thread):
+class Master:
     def __init__(self, workers: int, func: Callable, *func_args):
-        super(Master, self).__init__()
-        self.workers = workers
-        self.semaphore = threading.Semaphore(workers)
-
         self.func = func
         self.func_args = func_args
+        self.url_count = 0
+        self.url_count_lock = threading.Lock()
+        self.executor = ThreadPoolExecutor(max_workers=workers)
 
         self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
         self.serv_sock.bind(("127.0.0.1", 53210))
-        self.serv_sock.listen()
+        self.serv_sock.listen(10)
 
     def run(self):
         while True:
             client_sock, _ = self.serv_sock.accept()
-
-            self.semaphore.acquire()
-            client_thread = threading.Thread(
-                target=self.handle_client, args=(client_sock,)
-            )
-            client_thread.start()
+            self.executor.submit(self.handle_client, client_sock)
 
     def handle_client(self, client_sock):
-        while True:
+        try:
             data = client_sock.recv(1024)
             if not data:
-                break
+                return
 
             url = data.decode()
-            try:
-                result = self.func(url, *self.func_args)
-                client_sock.sendall(result.encode())
-            except Exception as e:
-                client_sock.sendall("error".encode())
-                client_sock.close()
-                print(f"Ошибка: {e}")
-            finally:
-                self.semaphore.release()
+            result = self.func(url, *self.func_args)
+            client_sock.sendall(result.encode())
+        except Exception as e:
+            client_sock.sendall("error".encode())
+            print(f"Ошибка: {e}")
+        finally:
+            client_sock.close()
+            with self.url_count_lock:
+                self.url_count += 1
+                print(f"Обработано URL: {self.url_count}")
 
 
 if __name__ == "__main__":
-    argument_parser = argparse.ArgumentParser(
-        "Server",
-        "Multithreading app for scraping urls to get top K frequent words",
-    )
+    argument_parser = argparse.ArgumentParser()
+    argument_parser.add_argument("-w", type=int, required=True, help="workers amount")
     argument_parser.add_argument(
-        "-w", default=None, type=int, help="workers amount", required=True
+        "-k", type=int, required=True, help="search for k frequent words"
     )
-    argument_parser.add_argument(
-        "-k", default=None, type=int, help="search for k frequent words", required=True
-    )
-
     args = argument_parser.parse_args()
-    workers, words = args.w, args.k
 
-    server = Master(workers, count_top_frequent_words, words)
-    server.start()
+    server = Master(args.w, count_top_frequent_words, args.k)
+    server.run()
