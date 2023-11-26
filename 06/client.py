@@ -1,6 +1,6 @@
 import socket
 import argparse
-
+import json
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -37,4 +37,5 @@ if __name__ == "__main__":
 
     for url in urls:
         work = thread_pool.submit(make_request, url)
-        print(work.result())
+        json_answer = json.loads(work.result())
+        print(json_answer)
