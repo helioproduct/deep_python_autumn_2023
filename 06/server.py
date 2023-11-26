@@ -32,7 +32,7 @@ class Master(threading.Thread):
 
         self.serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, proto=0)
         self.serv_sock.bind(("127.0.0.1", 53210))
-        self.serv_sock.listen(10)
+        self.serv_sock.listen()
 
     def run(self):
         while True:
@@ -57,9 +57,9 @@ class Master(threading.Thread):
             except Exception as e:
                 client_sock.sendall("error".encode())
                 client_sock.close()
-                self.semaphore.release()
-
                 print(f"Ошибка: {e}")
+            finally:
+                self.semaphore.release()
 
 
 if __name__ == "__main__":
