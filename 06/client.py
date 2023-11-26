@@ -27,12 +27,10 @@ def read_file(filename: str):
 def simplify_url(url):
     parsed_url = urlparse(url)
     domain_parts = parsed_url.netloc.split(".")
-    # Проверяем, есть ли поддомен (например, 'www')
+
     if len(domain_parts) > 2:
-        # Возвращаем последние две части (домен второго уровня)
         return ".".join(domain_parts[-2:])
     else:
-        # Если нет поддомена, возвращаем всё, что есть
         return parsed_url.netloc
 
 
