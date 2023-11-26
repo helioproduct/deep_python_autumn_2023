@@ -5,14 +5,13 @@ import threading
 
 from typing import Callable
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 import requests
 
-from concurrent.futures import ThreadPoolExecutor
-
 
 def count_top_frequent_words(url, k: int) -> str:
-    response = requests.get(url)
+    response = requests.get(url, timeout=5)
     soup = BeautifulSoup(response.text, features="html.parser")
     count = dict(Counter(soup.get_text().split()))
 
@@ -49,9 +48,9 @@ class Master:
             url = data.decode()
             result = self.func(url, *self.func_args)
             client_sock.sendall(result.encode())
-        except Exception as e:
+        except Exception as exception:
             client_sock.sendall("error".encode())
-            print(f"Ошибка: {e}")
+            print(f"Ошибка: {exception}")
         finally:
             client_sock.close()
             with self.url_count_lock:
