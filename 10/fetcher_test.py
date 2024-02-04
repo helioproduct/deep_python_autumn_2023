@@ -2,7 +2,7 @@ import asyncio
 import unittest
 from unittest import TestCase, mock
 from unittest.mock import patch, MagicMock
-import fetcher  # Replace 'your_script' with the name of your script file
+import fetcher
 
 
 class TestFetchURL(TestCase):
