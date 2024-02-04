@@ -18,7 +18,6 @@ async def fetch_url(url: str, output_filename: str) -> bool:
 
 
 async def fetch_urls(urls: List[str], count: int) -> int:
-
     if count <= 0:
         return
 

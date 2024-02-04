@@ -6,7 +6,6 @@ import fetcher
 
 
 class TestFetchURL(TestCase):
-
     @patch("fethcer.aiohttp.ClientSession.get")
     async def test_fetch_url_success(self, mock_get):
         mock_response = MagicMock(status=200)
@@ -33,7 +32,6 @@ class TestFetchURL(TestCase):
 
 
 class TestFetchURLs(TestCase):
-
     @patch("your_script.fetch_url")
     async def test_fetch_urls(self, mock_fetch_url):
         mock_fetch_url.side_effect = [True, False, True]
