@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/3277503/how-to-read-a-file-line-by-line-into-a-list
+https://github.com/toshunster/mai_deep_python_autumn_2023/blob/main/lesson-10/homework.md
+https://github.com/toshunster/mai_deep_python_autumn_2023/tree/main/lesson-10

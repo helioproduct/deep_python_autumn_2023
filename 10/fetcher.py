@@ -1,46 +1,63 @@
-# import argparse
-
-import asyncio
 import aiohttp
+import asyncio
 
+import argparse
+
+from typing import List
 from time import time
 
 
-def write_image(data):
-    filename = f"file-{int(time() * 100)}.jpeg"
-    with open(filename, "wb") as file:
-        file.write(data)
-
-
-async def fetch_content(url, session):
-    async with session.get(url, allow_redirects=True) as response:
-        data = await response.read()
-        write_image(data)
-
-
-async def main2():
-    url = "http://loremflickr.com/320/240"
-
-    tasks = []
-
+async def fetch_url(url: str, output_filename: str) -> bool:
     async with aiohttp.ClientSession() as session:
-        for _ in range(10):
-            task = asyncio.create_task(fetch_content(url, session))
-            tasks.append(task)
-        await asyncio.gather(*tasks)
+        async with session.get(url) as response:
+            if response.status == 200:
+                with open(output_filename, "w+") as output:
+                    output.write(await response.text())
+                    return True
+            return False
 
 
-t0 = time()
-asyncio.run(main2())
-print(time() - t0)
+async def fetch_urls(urls: List[str], count: int) -> int:
+
+    if count <= 0:
+        return
+
+    fetched = 0
+    actually_fetched = 0
+
+    while fetched < len(urls):
+        tasks = []
+
+        for i in range(min(count, len(urls))):
+            if fetched + i >= len(urls):
+                break
+
+            tasks.append(
+                asyncio.create_task(
+                    fetch_url(urls[fetched + i], f"output_{fetched + i + 1}")
+                )
+            )
+
+        result = await asyncio.gather(*tasks)
+        actually_fetched += result.count(True)
+        fetched += min(len(urls), count)
+
+    return actually_fetched
 
 
-# if __name__ == "__main__":
-#     argument_parser = argparse.ArgumentParser()
-#     argument_parser.add_argument("-c", type=int, required=True, help="count")
-#     argument_parser.add_argument("source", help="source")
-#     args = argument_parser.parse_args()
-#     print(args)
+if __name__ == "__main__":
+    argument_parser = argparse.ArgumentParser()
+    argument_parser.add_argument("-c", "--count", type=int, required=True, help="count")
+    argument_parser.add_argument("source", help="source")
+    args = argument_parser.parse_args()
 
-#     # server = Master(args.w, count_top_frequent_words, args.k)
-#     # server.run()
+    count, urls_file = vars(args)["count"], vars(args)["source"]
+    urls = []
+
+    with open(urls_file) as source_file:
+        for line in source_file:
+            urls.append(line)
+
+    start = time()
+    result = asyncio.run(fetch_urls(urls, count))
+    print(f"fetched {result} / {len(urls)} urls in {time() - start} sec")
