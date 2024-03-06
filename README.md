@@ -1,1 +1,1 @@
-# mai_deep_python_autumn_2023
+# Deep python autumn 2023
